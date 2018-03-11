@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\User;
+use Auth;
+Use Hash;
 
 class UserController extends Controller
 {
@@ -12,8 +15,8 @@ class UserController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
-        return 'test';
+    {        
+        return response()->json(['users' => User::all()], 200);
     }
 
     /**
@@ -80,5 +83,24 @@ class UserController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function updatePassword(Request $request, User $user)
+    {
+        $fields = $request->validate([            
+            'password' => 'required',
+            'new_password' => 'required|confirmed',
+        ]);
+
+
+
+        if (Auth::user()->id == $user->id && Hash::check($fields['password'], Auth::user()->password)) {
+            // Authentication passed...
+            $user->password = $fields['new_password'];
+            $user->save();
+            return response('success', 200);
+        }
+
+        return response('not authenticated', 401);
     }
 }
